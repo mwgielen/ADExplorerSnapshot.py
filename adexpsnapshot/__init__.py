@@ -1,4 +1,3 @@
-from adexpsnapshot.parser.classes import Snapshot
 from requests.structures import CaseInsensitiveDict
 
 import pwnlib.log, pwnlib.term, logging
@@ -23,10 +22,15 @@ from enum import Enum
 class ADExplorerSnapshot(object):
     OutputMode = Enum('OutputMode', ['BloodHound', 'Objects'])
 
-    def __init__(self, snapfile, outputfolder, log=None):
+    def __init__(self, snapfile, outputfolder, log=None, snapshot_parser=None):
         self.log = log
         self.output = outputfolder
-        self.snap = Snapshot(snapfile, log=log)
+
+        if not snapshot_parser:
+            from adexpsnapshot.parser.classes import Snapshot
+            snapshot_parser = Snapshot
+
+        self.snap = snapshot_parser(snapfile, log=log)
 
         self.snap.parseHeader()
 
