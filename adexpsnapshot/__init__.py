@@ -454,7 +454,7 @@ class ADExplorerSnapshot(object):
         highvalue = ["S-1-5-32-544", "S-1-5-32-550", "S-1-5-32-549", "S-1-5-32-551", "S-1-5-32-548"]
 
         def is_highvalue(sid):
-            if sid.endswith("-512") or sid.endswith("-516") or sid.endswith("-519") or sid.endswith("-520"):
+            if sid and (sid.endswith("-512") or sid.endswith("-516") or sid.endswith("-519") or sid.endswith("-520")):
                 return True
             if sid in highvalue:
                 return True
@@ -471,6 +471,7 @@ class ADExplorerSnapshot(object):
                 "domain": self.domainname.upper(),
                 "domainsid": self.domainsid,
                 "name": resolved_entry['principal'],
+                "highvalue": is_highvalue(sid),
                 "distinguishedname": distinguishedName
             },
             "Members": [],
