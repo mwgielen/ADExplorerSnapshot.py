@@ -1,4 +1,3 @@
-from adexpsnapshot.parser.classes import Snapshot
 from requests.structures import CaseInsensitiveDict
 
 import pwnlib.log, pwnlib.term, logging
@@ -23,10 +22,15 @@ from enum import Enum
 class ADExplorerSnapshot(object):
     OutputMode = Enum('OutputMode', ['BloodHound', 'Objects'])
 
-    def __init__(self, snapfile, outputfolder, log=None):
+    def __init__(self, snapfile, outputfolder, log=None, snapshot_parser=None):
         self.log = log
         self.output = outputfolder
-        self.snap = Snapshot(snapfile, log=log)
+
+        if not snapshot_parser:
+            from adexpsnapshot.parser.classes import Snapshot
+            snapshot_parser = Snapshot
+
+        self.snap = snapshot_parser(snapfile, log=log)
 
         self.snap.parseHeader()
 
@@ -404,7 +408,8 @@ class ADExplorerSnapshot(object):
                 continue
             try:
                 sid = self.computersidcache.get(target)
-                computer['AllowedToDelegate'].append(sid)
+                if sid:
+                    computer['AllowedToDelegate'].append(sid)
             except KeyError:
                 if '.' in target:
                     computer['AllowedToDelegate'].append(target.upper())
@@ -449,7 +454,7 @@ class ADExplorerSnapshot(object):
         highvalue = ["S-1-5-32-544", "S-1-5-32-550", "S-1-5-32-549", "S-1-5-32-551", "S-1-5-32-548"]
 
         def is_highvalue(sid):
-            if sid.endswith("-512") or sid.endswith("-516") or sid.endswith("-519") or sid.endswith("-520"):
+            if sid and (sid.endswith("-512") or sid.endswith("-516") or sid.endswith("-519") or sid.endswith("-520")):
                 return True
             if sid in highvalue:
                 return True
@@ -466,6 +471,7 @@ class ADExplorerSnapshot(object):
                 "domain": self.domainname.upper(),
                 "domainsid": self.domainsid,
                 "name": resolved_entry['principal'],
+                "highvalue": is_highvalue(sid),
                 "distinguishedname": distinguishedName
             },
             "Members": [],
@@ -540,7 +546,8 @@ class ADExplorerSnapshot(object):
                     continue
                 try:
                     sid = self.computersidcache[target]
-                    user['AllowedToDelegate'].append(sid)
+                    if sid:
+                        user['AllowedToDelegate'].append(sid)
                 except KeyError:
                     if '.' in target:
                         user['AllowedToDelegate'].append(target.upper())
